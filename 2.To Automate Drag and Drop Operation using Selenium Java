@@ -1,0 +1,50 @@
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.interactions.Actions;
+
+public class DragAndDropAutomation {
+    public static void main(String[] args) {
+        // Set the path to your chromedriver.exe
+        System.setProperty("webdriver.chrome.driver", "C:\\Software\\chromedriver-win64\\chromedriver.exe");
+
+        // Launch Chrome browser
+        WebDriver driver = new ChromeDriver();
+
+        // Maximize browser window
+        driver.manage().window().maximize();
+
+        // Navigate to the jQueryUI droppable demo
+        driver.get("https://jqueryui.com/droppable/");
+
+        // Switch to the iframe containing the draggable/droppable elements
+        driver.switchTo().frame(driver.findElement(By.cssSelector(".demo-frame")));
+
+        // Find source (draggable) and target (droppable) elements
+        WebElement source = driver.findElement(By.id("draggable"));
+        WebElement target = driver.findElement(By.id("droppable"));
+
+        // Perform drag-and-drop
+        Actions actions = new Actions(driver);
+        actions.dragAndDrop(source, target).perform();
+
+        // Verification: Get target text and CSS color
+        String droppedText = target.getText();
+        String backgroundColor = target.getCssValue("background-color");
+
+        // Print the results
+        System.out.println("Text after drop: " + droppedText);
+        System.out.println("Background color after drop: " + backgroundColor);
+
+        // Simple checks
+        if (droppedText.equals("Dropped!")) {
+            System.out.println("✅ Drag and drop successful: Text is 'Dropped!'");
+        } else {
+            System.out.println("❌ Drag and drop failed: Text is not 'Dropped!'");
+        }
+
+        // Close the browser
+        driver.quit();
+    }
+}
