@@ -1,71 +1,82 @@
+package signin;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.time.Duration;
+import java.util.UUID;
 
 public class GuviSignupLoginAutomation {
+    public static void main(String[] args) {
+        System.setProperty("webdriver.chrome.driver", "C:\\Software\\chromedriver-win64\\chromedriver.exe"); // 🔁 Change this path
 
-    public static void main(String[] args) throws InterruptedException {
-        // Set path to your chromedriver
-        System.setProperty("webdriver.chrome.driver", "C:\\Path\\To\\chromedriver.exe");
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--start-maximized");
 
-        WebDriver driver = new ChromeDriver();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-        driver.manage().window().maximize();
+        WebDriver driver = new ChromeDriver(options);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        // Launch GUVI website
-        driver.get("https://www.guvi.in/");
-
-        // Click on Signup button
-        driver.findElement(By.xpath("//a[text()='Signup']")).click();
-
-        // Fill the signup form
-        driver.findElement(By.id("name")).sendKeys("Test User");
-        String email = "test" + System.currentTimeMillis() + "@example.com"; // unique email
-        driver.findElement(By.id("email")).sendKeys(email);
-        driver.findElement(By.id("password")).sendKeys("Test@12345");
-        driver.findElement(By.id("mobileNumber")).sendKeys("9876543210");
-
-        // Click Signup
-        driver.findElement(By.xpath("//button[text()='Signup']")).click();
-
-        // Wait for registration (simple wait)
-        Thread.sleep(5000);
-
-        // Verify signup (this depends on GUVI's behavior post-signup)
-        System.out.println("Signup Done. Title: " + driver.getTitle());
-
-        // Now log out if automatically logged in
         try {
-            WebElement profileDropdown = driver.findElement(By.className("profile-dropdown"));
-            if (profileDropdown.isDisplayed()) {
-                profileDropdown.click();
-                driver.findElement(By.xpath("//a[text()='Logout']")).click();
-                Thread.sleep(3000);
-            }
+            // Step 1: Open GUVI
+            driver.get("https://www.guvi.in/");
+
+            // Step 2: Click top-right "Sign up" button (visible text)
+            WebElement signupLink = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//a[contains(text(), 'Sign up')]")));
+            signupLink.click();
+
+            // Step 3: Fill in the Signup Form directly (no tab switch needed)
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("name"))).sendKeys("Test User");
+
+            String email = "testuser_" + UUID.randomUUID().toString().substring(0, 6) + "@mailinator.com";
+            driver.findElement(By.id("email")).sendKeys(email);
+            driver.findElement(By.id("password")).sendKeys("Test@1234");
+            driver.findElement(By.id("mobileNumber")).sendKeys("9876543210");
+
+            // Step 4: Click Signup button
+            driver.findElement(By.id("signup-btn")).click();
+
+            // Step 5: Wait for redirect/dashboard page
+            wait.until(ExpectedConditions.or(
+                    ExpectedConditions.urlContains("dashboard"),
+                    ExpectedConditions.titleContains("GUVI")
+            ));
+
+            System.out.println("✅ Signup successful with email: " + email);
+
+            // Step 6: Logout to verify login separately
+            driver.get("https://www.guvi.in/logout/");
+
+            // Step 7: Click Login
+            WebElement loginLink = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//a[contains(text(), 'Login')]")));
+            loginLink.click();
+
+            // Step 8: Fill login form
+            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email"))).sendKeys(email);
+            driver.findElement(By.id("password")).sendKeys("Test@1234");
+
+            // Step 9: Click Login
+            driver.findElement(By.id("login-btn")).click();
+
+            // Step 10: Verify successful login
+            wait.until(ExpectedConditions.or(
+                    ExpectedConditions.urlContains("dashboard"),
+                    ExpectedConditions.titleContains("GUVI")
+            ));
+
+            System.out.println("✅ Login successful for: " + email);
+
         } catch (Exception e) {
-            System.out.println("Logout step skipped (not logged in).");
+            System.out.println("❌ Test failed: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            driver.quit();
         }
-
-        // Click on Login
-        driver.findElement(By.xpath("//a[text()='Login']")).click();
-
-        // Fill login form
-        driver.findElement(By.id("email")).sendKeys(email);
-        driver.findElement(By.id("password")).sendKeys("Test@12345");
-
-        // Click Login
-        driver.findElement(By.xpath("//button[text()='Login']")).click();
-
-        // Wait for login
-        Thread.sleep(5000);
-
-        // Verify login
-        System.out.println("Login Done. Title: " + driver.getTitle());
-
-        // Close browser
-        driver.quit();
     }
 }
